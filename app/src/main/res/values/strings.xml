@@ -1,3 +1,14 @@
 <resources>
     <string name="app_name">PublicDefender</string>
+    <string name="title_edit_label">Title</string>
+    <string name="title_edit_hint">Untitled</string>
+    <string name="detail_edit_label">Details</string>
+    <string name="crime_solved_label">Solved</string>
+
+    <string-array name="severity_array">
+        <item>Infraction</item>
+        <item>Misdemeanor</item>
+        <item>Felony</item>
+        <item>War Crime</item>
+    </string-array>
 </resources>
