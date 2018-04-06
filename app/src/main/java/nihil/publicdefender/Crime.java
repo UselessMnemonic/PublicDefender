@@ -33,10 +33,6 @@ public class Crime {
         return mUUID;
     }
 
-    public void setUUID(UUID uuid) {
-        mUUID = uuid;
-    }
-
     public String getTitle() {
         return mTitle;
     }
