@@ -46,6 +46,7 @@ public class CrimeLab {
         for(Crime c : mCrimeList)
             if(c.getUUID().equals(uuid))
                 return c;
+
         return null;
     }
 }

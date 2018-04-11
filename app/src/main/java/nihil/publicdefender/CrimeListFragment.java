@@ -1,5 +1,7 @@
 package nihil.publicdefender;
 
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
@@ -8,6 +10,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -27,7 +31,8 @@ public class CrimeListFragment extends Fragment {
     {
         private TextView mTitleTextView;
         private TextView mDateTextView;
-        private CheckBox mSolvedCheckBox;
+        private ImageView mSolvedImageView;
+        private ProgressBar mSeverityBar;
 
         private Crime mCrime;
 
@@ -36,7 +41,26 @@ public class CrimeListFragment extends Fragment {
             mCrime = crime;
             mTitleTextView.setText(mCrime.getTitle());
             mDateTextView.setText(mCrime.getDate().toString());
-            mSolvedCheckBox.setChecked(mCrime.isSolved());
+            mSolvedImageView.setVisibility(mCrime.isSolved() ? View.VISIBLE : View.INVISIBLE);
+            mSeverityBar.setMax(3);
+            int s = mCrime.getSeverity();
+            int color = android.R.color.black;
+            switch (s)
+            {
+                case 0:
+                    break;
+                case 1:
+                    color = android.R.color.holo_blue_dark;
+                    break;
+                case 2:
+                    color = android.R.color.holo_orange_light;
+                    break;
+                case 3:
+                    color = android.R.color.holo_red_light;
+                    break;
+            }
+            mSeverityBar.setProgress(s);
+            mSeverityBar.getProgressDrawable().setColorFilter(getResources().getColor(color), PorterDuff.Mode.SRC_IN);
         }
 
         public CrimeHolder(View itemView) {
@@ -44,7 +68,8 @@ public class CrimeListFragment extends Fragment {
             itemView.setOnClickListener(this);
             mTitleTextView = itemView.findViewById(R.id.list_item_crime_title_text_view);
             mDateTextView = itemView.findViewById(R.id.list_item_crime_date_text_view);
-            mSolvedCheckBox = itemView.findViewById(R.id.list_item_crime_solved_check_box);
+            mSolvedImageView = itemView.findViewById(R.id.list_item_crime_solved_image_view);
+            mSeverityBar = itemView.findViewById(R.id.list_item_crime_severity_progress_bar);
         }
 
         @Override

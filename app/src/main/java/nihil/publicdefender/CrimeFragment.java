@@ -15,6 +15,8 @@ import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.Spinner;
 
+import com.google.android.gms.maps.MapView;
+
 /**
  * Created by be127osx on 4/3/18.
  */
@@ -26,6 +28,7 @@ public class CrimeFragment extends Fragment
     private Button mDateButton;
     private Spinner mSeveritySpinner;
     private CheckBox mSolvedCheckBox;
+    //private MapView mLocationView;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -84,6 +87,8 @@ public class CrimeFragment extends Fragment
                 mCrime.setSolved(isChecked);
             }
         });
+
+        //mLocationView = view.findViewById(R.id.location_view);
 
         return view;
     }
