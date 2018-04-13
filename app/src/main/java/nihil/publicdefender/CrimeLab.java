@@ -32,7 +32,7 @@ public class CrimeLab {
 
     public static CrimeLab get(Context context) {
         if(singleton == null)
-            return new CrimeLab(context);
+            singleton = new CrimeLab(context);
         return singleton;
     }
 
@@ -44,7 +44,7 @@ public class CrimeLab {
     public Crime getCrime(UUID uuid)
     {
         for(Crime c : mCrimeList)
-            if(c.getUUID().equals(uuid))
+            if(c.getUUID().toString().equals(uuid.toString()))
                 return c;
 
         return null;

@@ -1,11 +1,14 @@
 package nihil.publicdefender;
 
+import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.ColorFilter;
 import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,6 +20,7 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * Created by be127osx on 4/5/18.
@@ -36,17 +40,15 @@ public class CrimeListFragment extends Fragment {
 
         private Crime mCrime;
 
-        public void bindCrime(Crime crime)
-        {
+        public void bindCrime(Crime crime) {
             mCrime = crime;
             mTitleTextView.setText(mCrime.getTitle());
             mDateTextView.setText(mCrime.getDate().toString());
             mSolvedImageView.setVisibility(mCrime.isSolved() ? View.VISIBLE : View.INVISIBLE);
             mSeverityBar.setMax(3);
             int s = mCrime.getSeverity();
-            int color = android.R.color.black;
-            switch (s)
-            {
+            int color = android.R.color.background_light;
+            switch (s) {
                 case 0:
                     break;
                 case 1:
@@ -73,9 +75,10 @@ public class CrimeListFragment extends Fragment {
         }
 
         @Override
-        public void onClick(View v)
+        public void onClick(View view)
         {
-            Toast.makeText(getActivity(), mCrime.getTitle() + " clicked!", Toast.LENGTH_SHORT).show();
+            Intent intent = CrimeActivity.newIntent(getActivity(), mCrime.getUUID());
+            startActivity(intent);
         }
     }
 
@@ -122,9 +125,12 @@ public class CrimeListFragment extends Fragment {
     private void updateUI()
     {
         CrimeLab lab = CrimeLab.get(getActivity());
-        ArrayList<Crime> crimes = lab.getCrimes();
-
-        mAdapter = new CrimeAdapter(crimes);
-        mCrimeRecyclerView.setAdapter(mAdapter);
+        if(mAdapter == null)
+        {
+            mAdapter = new CrimeAdapter(lab.getCrimes());
+            mCrimeRecyclerView.setAdapter(mAdapter);
+        }
+        else
+            mAdapter.notifyDataSetChanged();
     }
 }
