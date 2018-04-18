@@ -11,4 +11,9 @@
         <item>Felony</item>
         <item>War Crime</item>
     </string-array>
+
+    <string name="go_to_first">First</string>
+    <string name="go_to_last">Last</string>
+
+    <string name="date_picker">Select the Date</string>
 </resources>

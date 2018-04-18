@@ -77,7 +77,7 @@ public class CrimeListFragment extends Fragment {
         @Override
         public void onClick(View view)
         {
-            Intent intent = CrimeActivity.newIntent(getActivity(), mCrime.getUUID());
+            Intent intent = CrimePagerActivity.newIntent(getActivity(), mCrime.getUUID());
             startActivity(intent);
         }
     }
@@ -132,5 +132,12 @@ public class CrimeListFragment extends Fragment {
         }
         else
             mAdapter.notifyDataSetChanged();
+    }
+
+    @Override
+    public void onResume()
+    {
+        super.onResume();
+        updateUI();
     }
 }

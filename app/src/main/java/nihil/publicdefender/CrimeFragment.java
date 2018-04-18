@@ -2,6 +2,7 @@ package nihil.publicdefender;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -28,6 +29,8 @@ import java.util.UUID;
 public class CrimeFragment extends Fragment
 {
     private static final String ARG_CRIME_ID = "crime_id";
+    private static final String DIALOGE_DATE = "dialoge_date";
+
     private Crime mCrime;
     private EditText mTitleField;
     private Button mDateButton;
@@ -51,7 +54,6 @@ public class CrimeFragment extends Fragment
 
         UUID argCrimeID = (UUID) getArguments().getSerializable(ARG_CRIME_ID);
         mCrime = CrimeLab.get(getActivity()).getCrime(argCrimeID);
-
     }
 
     @Override
@@ -79,7 +81,14 @@ public class CrimeFragment extends Fragment
 
         mDateButton = view.findViewById(R.id.crime_date);
         mDateButton.setText(mCrime.getDate().toString());
-        mDateButton.setEnabled(false);
+        mDateButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                FragmentManager fm = getFragmentManager();
+                DatePickerFragment datePicker = new DatePickerFragment();
+                datePicker.show(fm, DIALOGE_DATE);
+            }
+        });
 
         mSeveritySpinner = view.findViewById(R.id.severity_spinner);
 
@@ -92,7 +101,6 @@ public class CrimeFragment extends Fragment
         mSeveritySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                Log.d("Crime Fragment", "-------------------------------------Set selected to " + i);
                 mCrime.setSeverity(i);
             }
 
