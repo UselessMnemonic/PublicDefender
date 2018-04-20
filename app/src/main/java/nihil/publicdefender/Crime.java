@@ -13,7 +13,7 @@ import java.util.UUID;
 
 public class Crime {
 
-    //TO-DO provide location services
+    //TODO provide location services
     private UUID mUUID;
     private String mTitle;
     private Date mDate;
@@ -45,6 +45,8 @@ public class Crime {
     public Date getDate() {
         return mDate;
     }
+
+    public void setDate(Date date) { mDate = date; }
 
     public Location getLocation() {
         return mLocation;

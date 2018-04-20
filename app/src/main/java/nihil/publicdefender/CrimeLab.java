@@ -17,17 +17,6 @@ public class CrimeLab {
 
     private CrimeLab(Context context) {
         mCrimeList = new ArrayList<Crime>();
-
-        Random randomizer = new Random();
-        Crime filler;
-        for(int i = 0; i < 20; i++)
-        {
-            filler = new Crime();
-            filler.setSeverity(randomizer.nextInt(4));
-            filler.setSolved(randomizer.nextBoolean());
-            filler.setTitle("Crime " + (i+1));
-            mCrimeList.add(filler);
-        }
     }
 
     public static CrimeLab get(Context context) {
@@ -48,5 +37,17 @@ public class CrimeLab {
                 return c;
 
         return null;
+    }
+
+    public void addCrime(Crime c)
+    {
+        mCrimeList.add(c);
+    }
+
+    public void deleteCrime(UUID crimeID)
+    {
+        Crime crime = getCrime(crimeID);
+        if(crime != null)
+            mCrimeList.remove(crime);
     }
 }

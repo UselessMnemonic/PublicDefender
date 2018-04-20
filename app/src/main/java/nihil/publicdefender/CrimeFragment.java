@@ -1,12 +1,18 @@
 package nihil.publicdefender;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -20,6 +26,7 @@ import android.widget.Spinner;
 import com.google.android.gms.maps.MapView;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.UUID;
 
 /**
@@ -30,6 +37,7 @@ public class CrimeFragment extends Fragment
 {
     private static final String ARG_CRIME_ID = "crime_id";
     private static final String DIALOGE_DATE = "dialoge_date";
+    private static final int REQUEST_DATE = 0;
 
     private Crime mCrime;
     private EditText mTitleField;
@@ -54,6 +62,7 @@ public class CrimeFragment extends Fragment
 
         UUID argCrimeID = (UUID) getArguments().getSerializable(ARG_CRIME_ID);
         mCrime = CrimeLab.get(getActivity()).getCrime(argCrimeID);
+        setHasOptionsMenu(true);
     }
 
     @Override
@@ -80,13 +89,15 @@ public class CrimeFragment extends Fragment
         });
 
         mDateButton = view.findViewById(R.id.crime_date);
-        mDateButton.setText(mCrime.getDate().toString());
+        updateDate();
         mDateButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 FragmentManager fm = getFragmentManager();
-                DatePickerFragment datePicker = new DatePickerFragment();
-                datePicker.show(fm, DIALOGE_DATE);
+
+                DatePickerFragment dDialog = DatePickerFragment.newInstance(mCrime.getDate());
+                dDialog.setTargetFragment(CrimeFragment.this, REQUEST_DATE);
+                dDialog.show(fm, DIALOGE_DATE);
             }
         });
 
@@ -123,5 +134,41 @@ public class CrimeFragment extends Fragment
         //mLocationView = view.findViewById(R.id.location_view);
 
         return view;
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.fragment_crime, menu);
+    }
+
+    //TODO get menu to appear
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.delete_crime:
+                CrimeLab.get(getContext()).deleteCrime(mCrime.getUUID());
+                getActivity().finish();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if(resultCode != Activity.RESULT_OK)
+            return;
+
+        if(requestCode == REQUEST_DATE)
+        {
+            Date date = (Date) data.getSerializableExtra(DatePickerFragment.EXTRA_DATE);
+            mCrime.setDate(date);
+            updateDate();
+        }
+    }
+
+    private void updateDate() {
+        mDateButton.setText(mCrime.getDate().toString());
     }
 }
