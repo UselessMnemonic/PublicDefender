@@ -26,5 +26,9 @@
             android:parentActivityName=".CrimeListActivity">
         </activity>
 
+        <activity
+            android:name=".CrimeActivity">
+        </activity>
+
     </application>
 </manifest>
