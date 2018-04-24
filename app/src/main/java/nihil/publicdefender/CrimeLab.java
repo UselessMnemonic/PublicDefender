@@ -12,7 +12,7 @@ import java.util.UUID;
 
 public class CrimeLab {
 
-    private static CrimeLab singleton;
+    private static CrimeLab singleton = null;
     private ArrayList<Crime> mCrimeList;
 
     private CrimeLab(Context context) {

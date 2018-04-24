@@ -40,12 +40,16 @@ public class DatePickerFragment extends DialogFragment {
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
 
-        Date date = (Date) getArguments().getSerializable(ARG_DATE);
+        final Date date = (Date) getArguments().getSerializable(ARG_DATE);
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(date);
+
         int crimeYear = calendar.get(Calendar.YEAR);
         int crimeMonth = calendar.get(Calendar.MONTH);
         int crimeDay = calendar.get(Calendar.DAY_OF_MONTH);
+
+        final int crimeHour = calendar.get(Calendar.HOUR_OF_DAY);
+        final int crimeMinute = calendar.get(Calendar.MINUTE);
 
         View v = LayoutInflater.from(getActivity()).inflate(R.layout.dialog_date_picker, null);
 
@@ -58,11 +62,7 @@ public class DatePickerFragment extends DialogFragment {
                 .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        int retYear = mDatePicker.getYear();
-                        int retMonth = mDatePicker.getMonth();
-                        int retDay = mDatePicker.getDayOfMonth();
-
-                        Date retDate = new GregorianCalendar(retYear, retMonth, retDay).getTime();
+                        Date retDate = new GregorianCalendar(mDatePicker.getYear(), mDatePicker.getMonth(), mDatePicker.getDayOfMonth(), crimeHour, crimeMinute).getTime();
                         sendResult(Activity.RESULT_OK, retDate);
                     }
                 })

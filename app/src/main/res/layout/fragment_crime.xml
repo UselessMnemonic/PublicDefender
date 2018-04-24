@@ -1,28 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:addStatesFromChildren="false"
+    android:orientation="vertical">
 
     <TextView
         style="?android:listSeparatorTextViewStyle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/title_edit_label"/>
+        android:text="@string/title_edit_label" />
 
     <EditText
         android:id="@+id/crime_title_editor"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="@string/title_edit_hint"/>
+        android:hint="@string/title_edit_hint"
+        android:inputType="none" />
 
     <TextView
         style="?android:listSeparatorTextViewStyle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/detail_edit_label"/>
+        android:text="@string/detail_edit_label" />
 
     <Button
         android:id="@+id/crime_date"
@@ -33,14 +34,14 @@
         android:id="@+id/severity_spinner"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="5sp"
-        android:layout_marginBottom="5sp"/>
+        android:layout_marginBottom="5sp"
+        android:layout_marginTop="5sp" />
 
     <CheckBox
         android:id="@+id/crime_solved"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/crime_solved_label"/>
+        android:text="@string/crime_solved_label" />
 
     <!--<com.google.android.gms.maps.MapView
         android:id="@+id/location_view"

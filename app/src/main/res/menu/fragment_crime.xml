@@ -7,6 +7,5 @@
         android:id="@+id/delete_crime"
         android:icon="@drawable/ic_delete_crime"
         android:title="@string/delete_crime"
-        android:visible="true"
-        app:showAsAction="ifRoom|withText" />
+        app:showAsAction="always" />
 </menu>
