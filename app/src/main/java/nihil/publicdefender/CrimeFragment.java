@@ -1,7 +1,10 @@
 package nihil.publicdefender;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -22,6 +25,19 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.Toast;
+
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.MapsInitializer;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
+
 import java.util.Date;
 import java.util.UUID;
 
@@ -44,7 +60,9 @@ public class CrimeFragment extends Fragment
     private Button mDateButton;
     private Spinner mSeveritySpinner;
     private CheckBox mSolvedCheckBox;
-    //private MapView mLocationView;
+
+    private MapView mLocationView;
+    private GoogleMap mMap;
 
     public static CrimeFragment newInstance(UUID crimeID)
     {
@@ -62,6 +80,7 @@ public class CrimeFragment extends Fragment
         setHasOptionsMenu(true);
         UUID argCrimeID = (UUID) getArguments().getSerializable(ARG_CRIME_ID);
         mCrime = CrimeLab.get(getActivity()).getCrime(argCrimeID);
+
     }
 
     @Override
@@ -129,7 +148,49 @@ public class CrimeFragment extends Fragment
             }
         });
 
-        //mLocationView = view.findViewById(R.id.location_view);
+
+        //MAP STUFF
+        mLocationView = (MapView) view.findViewById(R.id.location_view);
+        mLocationView.onCreate(savedInstanceState);
+
+        mLocationView.onResume(); // needed to get the map to display immediately
+
+        try {
+            MapsInitializer.initialize(getActivity().getApplicationContext());
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        mLocationView.getMapAsync(new OnMapReadyCallback() {
+            @Override
+            public void onMapReady(GoogleMap gMap) {
+                mMap = gMap;
+
+                Location crimeLoc = mCrime.getLocation();
+
+                if(crimeLoc == null)
+                {
+                    crimeLoc = generateLocation();
+                    mCrime.setLocation(crimeLoc);
+                }
+
+                if(crimeLoc == null) {
+                    Toast.makeText(getContext(), R.string.unable_to_get_location, Toast.LENGTH_SHORT);
+                    mLocationView.setEnabled(false);
+                    return;
+                }
+
+                // For dropping a marker at a point on the Map
+                LatLng crimeLatLng = new LatLng(crimeLoc.getLatitude(), crimeLoc.getLatitude());
+                mMap.addMarker(new MarkerOptions().position(crimeLatLng).title(getString(R.string.crime_location_title)).snippet(getString(R.string.crime_location_description)));
+
+                // For zooming automatically to the location of the marker
+                CameraPosition cameraPosition = new CameraPosition.Builder().target(crimeLatLng).zoom(12).build();
+                mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+            }
+        });
+        //END MAP STUFF
 
         setHasOptionsMenu(true);
         return view;
@@ -138,7 +199,6 @@ public class CrimeFragment extends Fragment
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
-        Log.d("CRIME FRAG", "called onCreateOptionsMenu");
         inflater.inflate(R.menu.fragment_crime, menu);
     }
 
@@ -188,5 +248,24 @@ public class CrimeFragment extends Fragment
 
     private void updateDate() {
         mDateButton.setText(mCrime.getDate().toString());
+    }
+
+    private Location generateLocation() {
+        Location nextLocation = null;
+        LocationManager locationManager = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
+        try {
+            nextLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        } catch (SecurityException se)
+        {
+            nextLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+        }
+        return nextLocation;
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        CrimeLab.get(getActivity())
+                .updateCrime(mCrime);
     }
 }

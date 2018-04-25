@@ -22,4 +22,8 @@
     <string name = "show_subtitle">Show Subtitle</string>
     <string name="hide_subtitle">Hide Subtitle</string>
     <string name="subtitle_format">%1$d crimes</string>
+
+    <string name="crime_location_title">Crime Location</string>
+    <string name="crime_location_description">This is where the crime was reported.</string>
+    <string name ="unable_to_get_location">Unable to get Location, please check permissions.</string>
 </resources>

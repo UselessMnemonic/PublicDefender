@@ -1,8 +1,12 @@
 package nihil.publicdefender;
 
 
+import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.location.LocationProvider;
 
 import java.util.Date;
 import java.util.UUID;
@@ -22,7 +26,12 @@ public class Crime {
     private int mSeverity;
 
     public Crime() {
-        mUUID = UUID.randomUUID();
+        this(UUID.randomUUID());
+    }
+
+    public Crime(UUID uuid)
+    {
+        mUUID = uuid;
         mDate = new Date();
         setSeverity(0);
         setLocation(null);

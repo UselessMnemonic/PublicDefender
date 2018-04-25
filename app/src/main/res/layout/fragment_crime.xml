@@ -43,6 +43,11 @@
         android:layout_height="wrap_content"
         android:text="@string/crime_solved_label" />
 
+    <com.google.android.gms.maps.MapView
+        android:id="@+id/location_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
     <!--<com.google.android.gms.maps.MapView
         android:id="@+id/location_view"
         android:layout_width="match_parent"

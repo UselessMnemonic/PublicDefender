@@ -111,6 +111,10 @@ public class CrimeListFragment extends Fragment {
             holder.bindCrime(crime);
         }
 
+        public void setCrimes(ArrayList<Crime> crimes) {
+            mCrimes = crimes;
+        }
+
         @Override
         public int getItemCount()
         {
@@ -135,13 +139,17 @@ public class CrimeListFragment extends Fragment {
     private void updateUI()
     {
         CrimeLab lab = CrimeLab.get(getActivity());
+        ArrayList<Crime> crimes = lab.getCrimes();
+
         if(mAdapter == null)
         {
-            mAdapter = new CrimeAdapter(lab.getCrimes());
+            mAdapter = new CrimeAdapter(crimes);
             mCrimeRecyclerView.setAdapter(mAdapter);
         }
-        else
+        else {
+            mAdapter.setCrimes(crimes);
             mAdapter.notifyDataSetChanged();
+        }
 
         updateSubtitle();
     }
