@@ -3,7 +3,10 @@
     package="nihil.publicdefender">
 
     <!--Permissions-->
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission
+        android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission
+        android:name="android.permission.ACCESS_FINE_LOCATION"/>
 
     <application
         android:allowBackup="true"
@@ -13,7 +16,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
-        <meta-data android:name="com.google.android.geo.API_KEY" android:value="AIzaSyCMLe8dChcAnH3ITpayZ76IEm806Oip_1k"/>
+        <meta-data android:name="com.google.android.geo.API_KEY" android:value="PUT_API_KEY_HERE"/>
 
         <activity android:name=".CrimeListActivity">
             <intent-filter>

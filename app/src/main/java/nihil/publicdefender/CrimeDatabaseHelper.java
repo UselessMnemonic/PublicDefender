@@ -1,11 +1,6 @@
 package nihil.publicdefender;
 
-/**
- * Created by be127osx on 4/24/18.
- */
-
 import android.content.Context;
-import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 

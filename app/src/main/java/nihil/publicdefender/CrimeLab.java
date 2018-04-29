@@ -5,17 +5,15 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.location.Location;
-import android.os.Parcel;
-import android.os.ParcelFileDescriptor;
 
 import java.util.ArrayList;
-import java.util.Random;
 import java.util.UUID;
 
 public class CrimeLab {
 
     private static CrimeLab singleton = null;
     private SQLiteDatabase mDatabase;
+    private ArrayList<Crime> cachedCrimeList;
 
     private CrimeLab(Context context) {
         mDatabase = new CrimeDatabaseHelper(context).getWritableDatabase();
@@ -27,27 +25,37 @@ public class CrimeLab {
         return singleton;
     }
 
-    public ArrayList<Crime> getCrimes()
+    public void generateCrimeList()
     {
-        ArrayList<Crime> list = new ArrayList<Crime>();
+        cachedCrimeList = new ArrayList<Crime>();
         CrimeCursorWrapper cursor = queryCrimes(null, null);
 
         try {
             cursor.moveToFirst();
             while(!cursor.isAfterLast()) {
-                list.add(cursor.getCrime());
+                cachedCrimeList.add(cursor.getCrime());
                 cursor.moveToNext();
             }
         } finally {
             cursor.close();
         }
-
-        return list;
     }
 
-    public Crime getCrime(UUID uuid)
+    public ArrayList<Crime> getCrimes()
     {
-        CrimeCursorWrapper cursor = queryCrimes(CrimeSchema.CrimeTable.Columns.UUID + " = ?", new String[]{uuid.toString()});
+        if(cachedCrimeList == null)
+            generateCrimeList();
+        return cachedCrimeList;
+    }
+
+    public Crime getCrime(UUID uuid) //throws NoSuchCrimeException
+    {
+        for(Crime c : cachedCrimeList)
+            if(c.getUUID().equals(uuid))
+                return c;
+        return null;
+        //throw new NoSuchCrimeException();
+        /*CrimeCursorWrapper cursor = queryCrimes(CrimeSchema.CrimeTable.Columns.UUID + " = ?", new String[]{uuid.toString()});
         try {
             if(cursor.getCount() == 0)
                 return null;
@@ -55,12 +63,13 @@ public class CrimeLab {
             return cursor.getCrime();
         } finally {
             cursor.close();
-        }
+        }*/
     }
 
     public void addCrime(Crime c)
     {
         mDatabase.insert(CrimeSchema.CrimeTable.NAME, null, getContentValues(c));
+        generateCrimeList();
     }
 
     public void updateCrime(Crime crime)
@@ -70,23 +79,26 @@ public class CrimeLab {
         mDatabase.update(CrimeSchema.CrimeTable.NAME, values,
                 CrimeSchema.CrimeTable.Columns.UUID + " = ?",
                 new String[] { UUIDString });
+        generateCrimeList();
     }
 
     public void deleteCrime(UUID crimeID)
     {
         mDatabase.delete(CrimeSchema.CrimeTable.NAME, CrimeSchema.CrimeTable.Columns.UUID + " = ?", new String[] { crimeID.toString() });
+        generateCrimeList();
     }
 
     private static ContentValues getContentValues(Crime crime)
     {
+        double locLat = 0.0, locLng = 0.0;
         ContentValues values = new ContentValues();
         values.put(CrimeSchema.CrimeTable.Columns.UUID, crime.getUUID().toString());
         values.put(CrimeSchema.CrimeTable.Columns.DATE, crime.getDate().getTime());
 
         Location loc = crime.getLocation();
-        double locLat = 0.0, locLng = 0.0;
+
         if(loc != null) {
-            locLng = crime.getLocation().getLatitude();
+            locLat = crime.getLocation().getLatitude();
             locLng = crime.getLocation().getLongitude();
         }
 

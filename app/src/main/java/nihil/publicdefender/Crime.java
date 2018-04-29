@@ -1,12 +1,7 @@
 package nihil.publicdefender;
 
 
-import android.content.Context;
-import android.content.Intent;
 import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
-import android.location.LocationProvider;
 
 import java.util.Date;
 import java.util.UUID;
@@ -58,11 +53,15 @@ public class Crime {
     public void setDate(Date date) { mDate = date; }
 
     public Location getLocation() {
-        return mLocation;
+        if(mLocation == null)
+            return null;
+        return new Location(mLocation);
     }
 
     public void setLocation(Location location) {
-        mLocation = location;
+        if(location == null)
+            return;
+        mLocation = new Location(location);
     }
 
     public boolean isSolved() {

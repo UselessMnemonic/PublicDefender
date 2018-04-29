@@ -1,17 +1,14 @@
 package nihil.publicdefender;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
-import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -27,15 +24,14 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 
-import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.Date;
@@ -107,16 +103,26 @@ public class CrimeFragment extends Fragment
 
         mDateButton = view.findViewById(R.id.crime_date);
         updateDate();
-        mDateButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                FragmentManager fm = getFragmentManager();
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            mDateButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    FragmentManager fm = getFragmentManager();
 
-                DatePickerFragment dDialog = DatePickerFragment.newInstance(mCrime.getDate());
-                dDialog.setTargetFragment(CrimeFragment.this, REQUEST_DATE);
-                dDialog.show(fm, DIALOGE_DATE);
-            }
-        });
+                    DatePickerFragment dDialog = DatePickerFragment.newInstance(mCrime.getDate());
+                    dDialog.setTargetFragment(CrimeFragment.this, REQUEST_DATE);
+                    dDialog.show(fm, DIALOGE_DATE);
+                }
+            });
+        }
+        else {
+            mDateButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Toast.makeText(getContext(), R.string.unsupported_version_message, Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
 
         mSeveritySpinner = view.findViewById(R.id.severity_spinner);
 
@@ -169,21 +175,34 @@ public class CrimeFragment extends Fragment
 
                 Location crimeLoc = mCrime.getLocation();
 
-                if(crimeLoc == null)
-                {
-                    crimeLoc = generateLocation();
-                    mCrime.setLocation(crimeLoc);
-                }
-
-                if(crimeLoc == null) {
-                    Toast.makeText(getContext(), R.string.unable_to_get_location, Toast.LENGTH_SHORT);
-                    mLocationView.setEnabled(false);
-                    return;
-                }
-
                 // For dropping a marker at a point on the Map
-                LatLng crimeLatLng = new LatLng(crimeLoc.getLatitude(), crimeLoc.getLatitude());
-                mMap.addMarker(new MarkerOptions().position(crimeLatLng).title(getString(R.string.crime_location_title)).snippet(getString(R.string.crime_location_description)));
+                LatLng crimeLatLng = new LatLng(crimeLoc.getLatitude(), crimeLoc.getLongitude());
+                mMap.addMarker(new MarkerOptions().draggable(true).position(crimeLatLng).title(getString(R.string.crime_location_title)).snippet(getString(R.string.crime_location_description)));
+                mMap.setOnMarkerDragListener(new GoogleMap.OnMarkerDragListener() {
+                    @Override
+                    public void onMarkerDragStart(Marker marker) {
+
+                    }
+
+                    @Override
+                    public void onMarkerDrag(Marker marker) {
+
+                    }
+
+                    @Override
+                    public void onMarkerDragEnd(Marker marker) {
+                         LatLng nextLatLng = marker.getPosition();
+                         Location nextLocation = new Location("");
+                         nextLocation.setLatitude(nextLatLng.latitude);
+                         nextLocation.setLongitude(nextLatLng.longitude);
+                         mCrime.setLocation(nextLocation);
+                    }
+                });
+                try {
+                    mMap.setMyLocationEnabled(true);
+                } catch (SecurityException se) {
+                    Toast.makeText(getContext(), R.string.unable_to_get_location, Toast.LENGTH_SHORT).show();
+                }
 
                 // For zooming automatically to the location of the marker
                 CameraPosition cameraPosition = new CameraPosition.Builder().target(crimeLatLng).zoom(12).build();
@@ -202,7 +221,6 @@ public class CrimeFragment extends Fragment
         inflater.inflate(R.menu.fragment_crime, menu);
     }
 
-    //TODO get menu to appear
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
@@ -248,18 +266,6 @@ public class CrimeFragment extends Fragment
 
     private void updateDate() {
         mDateButton.setText(mCrime.getDate().toString());
-    }
-
-    private Location generateLocation() {
-        Location nextLocation = null;
-        LocationManager locationManager = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
-        try {
-            nextLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-        } catch (SecurityException se)
-        {
-            nextLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-        }
-        return nextLocation;
     }
 
     @Override

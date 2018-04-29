@@ -2,11 +2,13 @@ package nihil.publicdefender;
 
 import android.content.Intent;
 import android.graphics.PorterDuff;
+import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -16,14 +18,20 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
+import com.google.android.gms.location.LocationServices;
 
 import java.util.ArrayList;
 
-/**
- * Created by be127osx on 4/5/18.
- */
 
-public class CrimeListFragment extends Fragment {
+public class CrimeListFragment extends Fragment implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener{
 
     private static final String SAVED_SUBTITLE_VISIBLE = "subtitle";
 
@@ -31,10 +39,38 @@ public class CrimeListFragment extends Fragment {
     private CrimeAdapter mAdapter;
     private boolean mSubtitleVisible;
 
+    private GoogleApiClient mGoogleApiClient;
+    private LocationCallback mLocationCallback;
+    private FusedLocationProviderClient mFusedLocationClient;
+    private Location mLastLocation;
+    private boolean mRequestingLocationUpdates;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+
+        //setup google api
+        mGoogleApiClient = new GoogleApiClient.Builder(getContext())
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API)
+                .build();
+
+        Log.d("CRIME_LIST", "API GET!");
+
+        mLocationCallback = new LocationCallback() {
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+                Log.d("CRIME_LIST", "LOCATION UPDATE!");
+                if (locationResult == null)
+                    return;
+                mLastLocation = locationResult.getLastLocation();
+                Log.d("CRIME_LIST", mLastLocation.toString());
+            };
+        };
+
+        mRequestingLocationUpdates = false;
     }
 
     private class CrimeHolder extends RecyclerView.ViewHolder implements View.OnClickListener
@@ -104,6 +140,7 @@ public class CrimeListFragment extends Fragment {
             View view = layoutInflater.inflate(R.layout.list_item_crime, parent, false);
             return new CrimeHolder(view);
         }
+
         @Override
         public void onBindViewHolder(CrimeHolder holder, int position)
         {
@@ -153,13 +190,6 @@ public class CrimeListFragment extends Fragment {
 
         updateSubtitle();
     }
-
-    @Override
-    public void onResume()
-    {
-        super.onResume();
-        updateUI();
-    }
     
     public void onSaveInstanceSate(Bundle savedState)
     {
@@ -184,6 +214,7 @@ public class CrimeListFragment extends Fragment {
         switch (item.getItemId()) {
             case R.id.new_crime:
                 Crime crime = new Crime();
+                crime.setLocation(mLastLocation);
                 CrimeLab.get(getActivity()).addCrime(crime);
                 Intent intent = CrimePagerActivity.newIntent(getActivity(), crime.getUUID());
                 startActivity(intent);
@@ -208,5 +239,63 @@ public class CrimeListFragment extends Fragment {
 
         AppCompatActivity activity = (AppCompatActivity) getActivity();
         activity.getSupportActionBar().setSubtitle(subtitle);
+    }
+
+    @Override
+    public void onConnected(Bundle bundle) {
+        Log.d("LIST_FRAG", "Connected to API!");
+        mFusedLocationClient =  LocationServices.getFusedLocationProviderClient(getActivity());
+        mRequestingLocationUpdates = true;
+        startLocationUpdates();
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        Log.d("LIST_FRAG", "Connection to API suspended!");
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+        Log.d("LIST_FRAG", "Connection to API failed!");
+    }
+
+    //FIGUrE LOCATION OUT PLZ
+    @Override
+    public void onPause() {
+        super.onPause();
+        stopLocationUpdates();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if(mRequestingLocationUpdates)
+            startLocationUpdates();
+        updateUI();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        mGoogleApiClient.connect();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        mGoogleApiClient.disconnect();
+        mRequestingLocationUpdates = false;
+    }
+
+    private void stopLocationUpdates() {
+        mFusedLocationClient.removeLocationUpdates(mLocationCallback);
+    }
+
+    private void startLocationUpdates() {
+        try {
+            mFusedLocationClient.requestLocationUpdates(LocationRequest.create().setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY).setInterval(10000), mLocationCallback, null);
+        }catch(SecurityException se) {
+            Toast.makeText(getContext(), R.string.unable_to_get_location, Toast.LENGTH_LONG).show();
+        }
     }
 }

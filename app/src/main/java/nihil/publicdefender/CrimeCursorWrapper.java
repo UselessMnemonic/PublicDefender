@@ -4,7 +4,6 @@ package nihil.publicdefender;
 import android.database.Cursor;
 import android.database.CursorWrapper;
 import android.location.Location;
-import android.location.LocationProvider;
 
 import java.util.Date;
 import java.util.UUID;
@@ -38,6 +37,7 @@ public class CrimeCursorWrapper extends CursorWrapper {
         crime.setDate(new Date(date));
         crime.setSeverity(severity);
         crime.setLocation(crimeLocation);
+        crime.setSolved(isSolved == 1);
         return crime;
     }
 }
