@@ -12,7 +12,6 @@ import java.util.UUID;
 
 public class Crime {
 
-    //TODO provide location services
     private UUID mUUID;
     private String mTitle;
     private Date mDate;

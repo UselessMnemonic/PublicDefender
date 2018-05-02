@@ -288,7 +288,8 @@ public class CrimeListFragment extends Fragment implements GoogleApiClient.Conne
     }
 
     private void stopLocationUpdates() {
-        mFusedLocationClient.removeLocationUpdates(mLocationCallback);
+        if(mRequestingLocationUpdates)
+            mFusedLocationClient.removeLocationUpdates(mLocationCallback);
     }
 
     private void startLocationUpdates() {

@@ -16,7 +16,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
-        <meta-data android:name="com.google.android.geo.API_KEY" android:value="PUT_API_KEY_HERE"/>
+        <meta-data android:name="com.google.android.geo.API_KEY" android:value="AIzaSyDk29Bn00V8L2bRy3BqhMt3ckhvjy1LJhk"/>
 
         <activity android:name=".CrimeListActivity">
             <intent-filter>
