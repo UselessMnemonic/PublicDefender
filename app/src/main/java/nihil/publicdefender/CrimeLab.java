@@ -94,20 +94,20 @@ public class CrimeLab {
         ContentValues values = new ContentValues();
         values.put(CrimeSchema.CrimeTable.Columns.UUID, crime.getUUID().toString());
         values.put(CrimeSchema.CrimeTable.Columns.DATE, crime.getDate().getTime());
+        values.put(CrimeSchema.CrimeTable.Columns.HAS_LOCATION, crime.hasLocation());
 
         Location loc = crime.getLocation();
-
         if(loc != null) {
             locLat = crime.getLocation().getLatitude();
             locLng = crime.getLocation().getLongitude();
         }
-
         values.put(CrimeSchema.CrimeTable.Columns.LOCATION_LONG, locLng);
         values.put(CrimeSchema.CrimeTable.Columns.LOCATION_LAT, locLat);
 
         values.put(CrimeSchema.CrimeTable.Columns.SEVERITY, crime.getSeverity());
         values.put(CrimeSchema.CrimeTable.Columns.SOLVED, crime.isSolved());
         values.put(CrimeSchema.CrimeTable.Columns.TITILE, crime.getTitle());
+        values.put(CrimeSchema.CrimeTable.Columns.SUSPECT, crime.getSuspect());
         return values;
     }
 

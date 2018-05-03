@@ -4,6 +4,8 @@
     <string name="title_edit_hint">Untitled</string>
     <string name="detail_edit_label">Details</string>
     <string name="crime_solved_label">Solved</string>
+    <string name="crime_suspect_text">Choose Suspect</string>
+    <string name="crime_report_text">Send Crime Report</string>
 
     <string-array name="severity_array">
         <item>Infraction</item>
@@ -23,9 +25,19 @@
     <string name="hide_subtitle">Hide Subtitle</string>
     <string name="subtitle_format">%1$d crimes</string>
 
+    <string name="crime_report">%1$s! The crime was discovered on %2$s. %3$s, and %4$s %5$s</string>
+    <string name="crime_report_location">Supposedly occurred at Lat:%1$f Lng:%2$f</string>
+    <string name="crime_report_location_unknown">Location Unknown</string>
+    <string name="crime_report_solved">The case is solved</string>
+    <string name="crime_report_unsolved">The case is not solved</string>
+    <string name="crime_report_no_suspect">there is no suspect.</string>
+    <string name="crime_report_suspect">the suspect is %s.</string>
+    <string name="crime_report_subject">Public Crime Report</string>
+    <string name="send_report">Send crime report via</string>
+
     <string name="crime_location_title">Crime Location</string>
     <string name="crime_location_description">This is where the crime was reported.</string>
-    <string name ="unable_to_get_location">Unable to get current location, please check permissions.</string>
 
-    <string name="unsupported_version_message">This Android device is unable to use this feature</string>
+    <string name ="unable_to_get_location">Unable to get current location, please check permissions.</string>
+    <string name="location_client_bad">Unable to connect to Location API, please check Google Services version is up to date.</string>
 </resources>

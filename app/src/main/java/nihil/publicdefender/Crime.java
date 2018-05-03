@@ -15,9 +15,11 @@ public class Crime {
     private UUID mUUID;
     private String mTitle;
     private Date mDate;
+    private boolean mHasLocation;
     private Location mLocation;
     private boolean mSolved;
     private int mSeverity;
+    private String mSuspect;
 
     public Crime() {
         this(UUID.randomUUID());
@@ -52,15 +54,29 @@ public class Crime {
     public void setDate(Date date) { mDate = date; }
 
     public Location getLocation() {
-        if(mLocation == null)
+        if(mHasLocation)
+            return new Location(mLocation);
+        else
             return null;
-        return new Location(mLocation);
     }
 
     public void setLocation(Location location) {
         if(location == null)
-            return;
-        mLocation = new Location(location);
+        {
+            mHasLocation = false;
+        }
+        else
+        {
+            mLocation = new Location(location);
+            mHasLocation = true;
+        }
+    }
+
+    public String getSuspect() {
+        return mSuspect;
+    }
+    public void setSuspect(String suspect) {
+        mSuspect = suspect;
     }
 
     public boolean isSolved() {
@@ -74,4 +90,9 @@ public class Crime {
     public void setSeverity(int severity) { mSeverity = severity; }
 
     public int getSeverity() { return mSeverity; }
+
+    public boolean hasLocation()
+    {
+        return mHasLocation;
+    }
 }

@@ -25,12 +25,18 @@ public class CrimeCursorWrapper extends CursorWrapper {
         long date = getLong(getColumnIndex(CrimeSchema.CrimeTable.Columns.DATE));
         int isSolved = getInt(getColumnIndex(CrimeSchema.CrimeTable.Columns.SOLVED));
         int severity = getInt(getColumnIndex(CrimeSchema.CrimeTable.Columns.SEVERITY));
+        int hasLocation = getInt(getColumnIndex(CrimeSchema.CrimeTable.Columns.HAS_LOCATION));
         double locLat = getDouble(getColumnIndex(CrimeSchema.CrimeTable.Columns.LOCATION_LAT));
         double locLong = getDouble(getColumnIndex(CrimeSchema.CrimeTable.Columns.LOCATION_LONG));
+        String suspect = getString(getColumnIndex(CrimeSchema.CrimeTable.Columns.SUSPECT));
 
-        Location crimeLocation = new Location("");
-        crimeLocation.setLatitude(locLat);
-        crimeLocation.setLongitude(locLong);
+        Location crimeLocation = null;
+
+        if(hasLocation == 1) {
+            crimeLocation = new Location("");
+            crimeLocation.setLatitude(locLat);
+            crimeLocation.setLongitude(locLong);
+        }
 
         Crime crime = new Crime(UUID.fromString(UUIDString));
         crime.setTitle(title);
@@ -38,6 +44,7 @@ public class CrimeCursorWrapper extends CursorWrapper {
         crime.setSeverity(severity);
         crime.setLocation(crimeLocation);
         crime.setSolved(isSolved == 1);
+        crime.setSuspect(suspect);
         return crime;
     }
 }

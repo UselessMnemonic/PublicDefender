@@ -1,10 +1,14 @@
 package nihil.publicdefender;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.PorterDuff;
 import android.location.Location;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -34,6 +38,7 @@ import java.util.ArrayList;
 public class CrimeListFragment extends Fragment implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener{
 
     private static final String SAVED_SUBTITLE_VISIBLE = "subtitle";
+    private static final int GET_PERMISSIONS_CALLBACK = 0;
 
     private RecyclerView mCrimeRecyclerView;
     private CrimeAdapter mAdapter;
@@ -43,7 +48,6 @@ public class CrimeListFragment extends Fragment implements GoogleApiClient.Conne
     private LocationCallback mLocationCallback;
     private FusedLocationProviderClient mFusedLocationClient;
     private Location mLastLocation;
-    private boolean mRequestingLocationUpdates;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -57,8 +61,6 @@ public class CrimeListFragment extends Fragment implements GoogleApiClient.Conne
                 .addApi(LocationServices.API)
                 .build();
 
-        Log.d("CRIME_LIST", "API GET!");
-
         mLocationCallback = new LocationCallback() {
             @Override
             public void onLocationResult(LocationResult locationResult) {
@@ -69,8 +71,6 @@ public class CrimeListFragment extends Fragment implements GoogleApiClient.Conne
                 Log.d("CRIME_LIST", mLastLocation.toString());
             };
         };
-
-        mRequestingLocationUpdates = false;
     }
 
     private class CrimeHolder extends RecyclerView.ViewHolder implements View.OnClickListener
@@ -170,6 +170,7 @@ public class CrimeListFragment extends Fragment implements GoogleApiClient.Conne
             mSubtitleVisible = savedInstanceBundle.getBoolean(SAVED_SUBTITLE_VISIBLE);
 
         updateUI();
+        requestNeededPermissions();
         return view;
     }
 
@@ -215,6 +216,7 @@ public class CrimeListFragment extends Fragment implements GoogleApiClient.Conne
             case R.id.new_crime:
                 Crime crime = new Crime();
                 crime.setLocation(mLastLocation);
+                crime.setTitle(getString(R.string.title_edit_hint));
                 CrimeLab.get(getActivity()).addCrime(crime);
                 Intent intent = CrimePagerActivity.newIntent(getActivity(), crime.getUUID());
                 startActivity(intent);
@@ -245,7 +247,6 @@ public class CrimeListFragment extends Fragment implements GoogleApiClient.Conne
     public void onConnected(Bundle bundle) {
         Log.d("LIST_FRAG", "Connected to API!");
         mFusedLocationClient =  LocationServices.getFusedLocationProviderClient(getActivity());
-        mRequestingLocationUpdates = true;
         startLocationUpdates();
     }
 
@@ -259,7 +260,6 @@ public class CrimeListFragment extends Fragment implements GoogleApiClient.Conne
         Log.d("LIST_FRAG", "Connection to API failed!");
     }
 
-    //FIGUrE LOCATION OUT PLZ
     @Override
     public void onPause() {
         super.onPause();
@@ -269,7 +269,7 @@ public class CrimeListFragment extends Fragment implements GoogleApiClient.Conne
     @Override
     public void onResume() {
         super.onResume();
-        if(mRequestingLocationUpdates)
+        if(mFusedLocationClient != null)
             startLocationUpdates();
         updateUI();
     }
@@ -284,11 +284,10 @@ public class CrimeListFragment extends Fragment implements GoogleApiClient.Conne
     public void onStop() {
         super.onStop();
         mGoogleApiClient.disconnect();
-        mRequestingLocationUpdates = false;
     }
 
     private void stopLocationUpdates() {
-        if(mRequestingLocationUpdates)
+        if(mFusedLocationClient != null)
             mFusedLocationClient.removeLocationUpdates(mLocationCallback);
     }
 
@@ -297,6 +296,18 @@ public class CrimeListFragment extends Fragment implements GoogleApiClient.Conne
             mFusedLocationClient.requestLocationUpdates(LocationRequest.create().setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY).setInterval(10000), mLocationCallback, null);
         }catch(SecurityException se) {
             Toast.makeText(getContext(), R.string.unable_to_get_location, Toast.LENGTH_LONG).show();
+        }catch(NullPointerException npe) {
+            Toast.makeText(getContext(), R.string.location_client_bad, Toast.LENGTH_LONG).show();
         }
+    }
+
+    private void requestNeededPermissions()
+    {
+        boolean canHazLocation = ContextCompat.checkSelfPermission(getActivity(),Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+
+        if(!canHazLocation)
+            ActivityCompat.requestPermissions(getActivity(),
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    GET_PERMISSIONS_CALLBACK);
     }
 }

@@ -2,13 +2,18 @@ package nihil.publicdefender;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.text.format.DateFormat;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -51,11 +56,15 @@ public class CrimeFragment extends Fragment
     private static final int REQUEST_DATE = 0;
     private static final int REQUEST_TIME = 1;
 
+    private static final int REQUEST_CONTACT = 2;
+
     private Crime mCrime;
     private EditText mTitleField;
     private Button mDateButton;
     private Spinner mSeveritySpinner;
     private CheckBox mSolvedCheckBox;
+    private Button mReportButton;
+    private Button mSuspectButton;
 
     private MapView mLocationView;
     private GoogleMap mMap;
@@ -103,26 +112,15 @@ public class CrimeFragment extends Fragment
 
         mDateButton = view.findViewById(R.id.crime_date);
         updateDate();
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            mDateButton.setOnClickListener(new View.OnClickListener() {
+        mDateButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    FragmentManager fm = getFragmentManager();
-
-                    DatePickerFragment dDialog = DatePickerFragment.newInstance(mCrime.getDate());
-                    dDialog.setTargetFragment(CrimeFragment.this, REQUEST_DATE);
-                    dDialog.show(fm, DIALOGE_DATE);
+                FragmentManager fm = getFragmentManager();
+                DatePickerFragment dDialog = DatePickerFragment.newInstance(mCrime.getDate());
+                dDialog.setTargetFragment(CrimeFragment.this, REQUEST_DATE);
+                dDialog.show(fm, DIALOGE_DATE);
                 }
             });
-        }
-        else {
-            mDateButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    Toast.makeText(getContext(), R.string.unsupported_version_message, Toast.LENGTH_SHORT).show();
-                }
-            });
-        }
 
         mSeveritySpinner = view.findViewById(R.id.severity_spinner);
 
@@ -154,6 +152,30 @@ public class CrimeFragment extends Fragment
             }
         });
 
+        mReportButton = (Button) view.findViewById(R.id.crime_report);
+        mReportButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                Intent i = new Intent(Intent.ACTION_SEND);
+                i.setType("text/plain");
+                i.putExtra(Intent.EXTRA_TEXT, getCrimeReport());
+                i.putExtra(Intent.EXTRA_SUBJECT,
+                        getString(R.string.crime_report_subject));
+                i = Intent.createChooser(i, getString(R.string.send_report));
+                startActivity(i);
+            }
+        });
+
+        final Intent pickContact = new Intent(Intent.ACTION_PICK,
+                ContactsContract.Contacts.CONTENT_URI);
+        mSuspectButton = (Button) view.findViewById(R.id.crime_suspect);
+        mSuspectButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                startActivityForResult(pickContact, REQUEST_CONTACT);
+            }
+        });
+        if (mCrime.getSuspect() != null) {
+            mSuspectButton.setText(mCrime.getSuspect());
+        }
 
         //MAP STUFF
         mLocationView = (MapView) view.findViewById(R.id.location_view);
@@ -174,6 +196,13 @@ public class CrimeFragment extends Fragment
                 mMap = gMap;
 
                 Location crimeLoc = mCrime.getLocation();
+                if(crimeLoc == null)
+                {
+                    Toast.makeText(getContext(), R.string.crime_report_location_unknown, Toast.LENGTH_SHORT);
+                    crimeLoc = new Location("");
+                    crimeLoc.setLongitude(0.0);
+                    crimeLoc.setLatitude(0.0);
+                }
 
                 // For dropping a marker at a point on the Map
                 LatLng crimeLatLng = new LatLng(crimeLoc.getLatitude(), crimeLoc.getLongitude());
@@ -210,6 +239,12 @@ public class CrimeFragment extends Fragment
             }
         });
         //END MAP STUFF
+
+        PackageManager packageManager = getActivity().getPackageManager();
+        if (packageManager.resolveActivity(pickContact,
+                PackageManager.MATCH_DEFAULT_ONLY) == null) {
+            mSuspectButton.setEnabled(false);
+        }
 
         setHasOptionsMenu(true);
         return view;
@@ -258,7 +293,28 @@ public class CrimeFragment extends Fragment
                 mCrime.setDate(time);
                 updateDate();
                 break;
-
+            case REQUEST_CONTACT:
+                if(data != null) {
+                    Uri contactUri = data.getData();
+                    String[] queryFields = new String[] {
+                            ContactsContract.Contacts.DISPLAY_NAME
+                    };
+                    Cursor c = getActivity().getContentResolver()
+                            .query(contactUri, queryFields, null, null, null);
+                    try {
+                        if (c.getCount() == 0) {
+                            return;
+                        }
+                        c.moveToFirst();
+                        String suspect = c.getString(0);
+                        mCrime.setSuspect(suspect);
+                        mSuspectButton.setText(suspect);
+                    }
+                    finally {
+                        c.close();
+                    }
+                }
+                break;
             default:
                 super.onActivityResult(requestCode, resultCode, data);
         }
@@ -266,6 +322,35 @@ public class CrimeFragment extends Fragment
 
     private void updateDate() {
         mDateButton.setText(mCrime.getDate().toString());
+    }
+
+    public String getCrimeReport() {
+        String solvedString = null;
+
+        if (mCrime.isSolved()) {
+            solvedString = getString(R.string.crime_report_solved);
+        } else {
+            solvedString = getString(R.string.crime_report_unsolved);
+        }
+        String dateFormat = "EEE, MMM dd";
+        String dateString = DateFormat.format(dateFormat, mCrime.getDate()).toString();
+        String suspect = mCrime.getSuspect();
+        if (suspect == null) {
+            suspect = getString(R.string.crime_report_no_suspect);
+        } else {
+            suspect = getString(R.string.crime_report_suspect, suspect);
+        }
+
+        String locationString;
+        Location loc = mCrime.getLocation();
+        if(mCrime.hasLocation())
+            locationString = getString(R.string.crime_report_location, loc.getLatitude(), loc.getLongitude());
+        else
+            locationString = getString(R.string.crime_report_location_unknown);
+
+        String report = getString(R.string.crime_report,
+                mCrime.getTitle(), dateString, solvedString, suspect, locationString);
+        return report;
     }
 
     @Override
