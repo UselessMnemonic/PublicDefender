@@ -95,4 +95,8 @@ public class Crime {
     {
         return mHasLocation;
     }
+
+    public String getPhotoPath() {
+        return "IMG_" + mUUID.toString() + ".JPEG";
+    }
 }

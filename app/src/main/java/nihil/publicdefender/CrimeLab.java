@@ -6,17 +6,20 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.location.Location;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.UUID;
 
 public class CrimeLab {
 
     private static CrimeLab singleton = null;
+    private Context mContext;
     private SQLiteDatabase mDatabase;
     private ArrayList<Crime> cachedCrimeList;
 
     private CrimeLab(Context context) {
-        mDatabase = new CrimeDatabaseHelper(context).getWritableDatabase();
+        mContext = context;
+        mDatabase = new CrimeDatabaseHelper(mContext).getWritableDatabase();
     }
 
     public static CrimeLab get(Context context) {
@@ -122,5 +125,11 @@ public class CrimeLab {
                 null // orderBy
         );
         return new CrimeCursorWrapper(cursor);
+    }
+
+    public File getCrimeImageFile(Crime c)
+    {
+        File directory = mContext.getFilesDir();
+        return new File(directory, c.getPhotoPath());
     }
 }

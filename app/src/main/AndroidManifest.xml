@@ -5,6 +5,11 @@
     <!--Permissions-->
     <uses-permission
         android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="18" />
+
+    <uses-feature android:name="android.hardware.camera"
+        android:required="false" />
 
     <application
         android:allowBackup="false"
@@ -14,7 +19,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
-        <meta-data android:name="com.google.android.geo.API_KEY" android:value="API-KEY-HERE"/>
+        <meta-data android:name="com.google.android.geo.API_KEY" android:value="API_KEY_HERE"/>
 
         <activity android:name=".CrimeListActivity">
             <intent-filter>
@@ -28,6 +33,16 @@
             android:name=".CrimePagerActivity"
             android:parentActivityName=".CrimeListActivity">
         </activity>
+
+        <provider
+            android:name="android.support.v4.content.FileProvider"
+            android:authorities="nihil.publicdefender.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/files"/>
+        </provider>
 
         <activity
             android:name=".CrimeActivity">

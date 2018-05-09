@@ -3,14 +3,19 @@ package nihil.publicdefender;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Icon;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
+import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.content.FileProvider;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.text.format.DateFormat;
@@ -26,6 +31,8 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
@@ -39,7 +46,9 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.io.File;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -55,8 +64,8 @@ public class CrimeFragment extends Fragment
 
     private static final int REQUEST_DATE = 0;
     private static final int REQUEST_TIME = 1;
-
     private static final int REQUEST_CONTACT = 2;
+    private static final int REQUEST_PHOTO = 3;
 
     private Crime mCrime;
     private EditText mTitleField;
@@ -65,6 +74,10 @@ public class CrimeFragment extends Fragment
     private CheckBox mSolvedCheckBox;
     private Button mReportButton;
     private Button mSuspectButton;
+
+    private ImageView mCrimePhoto;
+    private File mPhotoFile;
+    private ImageButton mPhotoButton;
 
     private MapView mLocationView;
     private GoogleMap mMap;
@@ -85,7 +98,7 @@ public class CrimeFragment extends Fragment
         setHasOptionsMenu(true);
         UUID argCrimeID = (UUID) getArguments().getSerializable(ARG_CRIME_ID);
         mCrime = CrimeLab.get(getActivity()).getCrime(argCrimeID);
-
+        mPhotoFile = CrimeLab.get(getActivity()).getCrimeImageFile(mCrime);
     }
 
     @Override
@@ -198,7 +211,7 @@ public class CrimeFragment extends Fragment
                 Location crimeLoc = mCrime.getLocation();
                 if(crimeLoc == null)
                 {
-                    Toast.makeText(getContext(), R.string.crime_report_location_unknown, Toast.LENGTH_SHORT);
+                    Toast.makeText(getContext(), R.string.crime_report_location_unknown, Toast.LENGTH_SHORT).show();
                     crimeLoc = new Location("");
                     crimeLoc.setLongitude(0.0);
                     crimeLoc.setLatitude(0.0);
@@ -246,7 +259,32 @@ public class CrimeFragment extends Fragment
             mSuspectButton.setEnabled(false);
         }
 
+        mCrimePhoto = view.findViewById(R.id.crime_photo);
+        mPhotoButton = view.findViewById(R.id.crime_camera_button);
+
+        final Intent captureImage = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        boolean canTakePhoto = mPhotoFile != null &&
+                captureImage.resolveActivity(packageManager) != null;
+        mPhotoButton.setEnabled(canTakePhoto);
+        mPhotoButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Uri uri = FileProvider.getUriForFile(getActivity(),
+                        "nihil.publicdefender.fileprovider",
+                        mPhotoFile);
+                captureImage.putExtra(MediaStore.EXTRA_OUTPUT, uri);
+                List<ResolveInfo> cameraActivities = getActivity()
+                        .getPackageManager().queryIntentActivities(captureImage,
+                                PackageManager.MATCH_DEFAULT_ONLY);
+                for (ResolveInfo activity : cameraActivities) {
+                    getActivity().grantUriPermission(activity.activityInfo.packageName,
+                            uri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                }
+                startActivityForResult(captureImage, REQUEST_PHOTO);
+            }
+        });
         setHasOptionsMenu(true);
+        updatePhotoView();
         return view;
     }
 
@@ -315,6 +353,14 @@ public class CrimeFragment extends Fragment
                     }
                 }
                 break;
+            case REQUEST_PHOTO:
+                Uri uri = FileProvider.getUriForFile(getActivity(),
+                        "com.baker.android.workcrimes.fileprovider",
+                        mPhotoFile);
+                getActivity().revokeUriPermission(uri,
+                        Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                updatePhotoView();
+                break;
             default:
                 super.onActivityResult(requestCode, resultCode, data);
         }
@@ -322,6 +368,18 @@ public class CrimeFragment extends Fragment
 
     private void updateDate() {
         mDateButton.setText(mCrime.getDate().toString());
+    }
+
+    private void updatePhotoView() {
+        if (mPhotoFile == null || !mPhotoFile.exists()) {
+            mCrimePhoto.setImageDrawable(null);
+        }
+        else {
+            Bitmap bitmap =
+                    PictureUtils.getScaledBitmap(mPhotoFile.getPath(),
+                            getActivity());
+            mCrimePhoto.setImageBitmap(bitmap);
+        }
     }
 
     public String getCrimeReport() {
