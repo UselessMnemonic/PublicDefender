@@ -355,7 +355,7 @@ public class CrimeFragment extends Fragment
                 break;
             case REQUEST_PHOTO:
                 Uri uri = FileProvider.getUriForFile(getActivity(),
-                        "com.baker.android.workcrimes.fileprovider",
+                        "nihil.publicdefender.fileprovider",
                         mPhotoFile);
                 getActivity().revokeUriPermission(uri,
                         Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
